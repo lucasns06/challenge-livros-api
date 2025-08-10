@@ -9,4 +9,6 @@ import java.util.List;
 public interface LivroRepository extends JpaRepository<Livro, Long> {
     @Query("SELECT l FROM Livro l WHERE :idioma MEMBER OF l.idiomas")
     List<Livro> findByIdioma(String idioma);
+
+    boolean existsByTitulo(String titulo);
 }

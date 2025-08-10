@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "autores")
@@ -77,10 +78,16 @@ public class Autor {
 
     @Override
     public String toString() {
+        String livrosStr = (livros == null || livros.isEmpty())
+                ? "Nenhum livro registrado"
+                : livros.stream()
+                .map(Livro::getTitulo)
+                .collect(Collectors.joining(", "));
+
         return  "\n" +
                 "Autor: " + nome + "\n" +
                 "Data de Nascimento: " + dataNascimento + "\n" +
-                "Data da morte: " + dataMorte
-                + "\n";
+                "Data da Morte: " + dataMorte + "\n" +
+                "Livros: " + livrosStr + "\n";
     }
 }

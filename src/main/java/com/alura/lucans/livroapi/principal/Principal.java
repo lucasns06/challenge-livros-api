@@ -72,34 +72,51 @@ public class Principal {
             }
         }
     }
-    public void buscarPorLivroTitulo(){
-        System.out.print("Digite o titulo do livro: ");
-        var titulo = leitor.nextLine();
-        System.out.println("Carregando...");
 
-        var json = consumoApi.obterDados(ENDERECO + "books/?search=" + titulo.replace(" ", "+"));
+public void buscarPorLivroTitulo() {
+    System.out.print("Digite o titulo do livro: ");
+    var titulo = leitor.nextLine();
+    System.out.println("Carregando...");
 
-        ResultadoApi resposta = conversor.obterDados(json, ResultadoApi.class);
+    var json = consumoApi.obterDados(ENDERECO + "books/?search=" + titulo.replace(" ", "+"));
+    ResultadoApi resposta = conversor.obterDados(json, ResultadoApi.class);
+    var listaLivros = resposta.resposta();
 
-        var listaLivros = resposta.resposta();
-
-        if (listaLivros == null || listaLivros.isEmpty()) {
-            System.out.println("Nenhum livro encontrado para o título pesquisado.");
-        } else {
-            var primeiroLivro = listaLivros.get(0);
-            var primeiroAutor = primeiroLivro.autor().get(0);
-            Livro livro = new Livro(primeiroLivro, primeiroAutor);
-            Autor autor = new Autor(primeiroAutor);
-            try {
-                livroRepositorio.save(livro);
-                autorRepositorio.save(autor);
-                System.out.println("Livro e autor salvos no sistema!");
-            } catch (DataIntegrityViolationException error){
-                System.out.println("Livro já existe no sistema!");
-            }
-            System.out.println(livro);
-        }
+    if (listaLivros == null || listaLivros.isEmpty()) {
+        System.out.println("Nenhum livro encontrado para o título pesquisado.");
+        return;
     }
+
+    var primeiroLivroDados = listaLivros.get(0);
+
+    if (primeiroLivroDados.autor() == null || primeiroLivroDados.autor().isEmpty()) {
+        System.out.println("Resposta da API não contém autor para esse livro.");
+        return;
+    }
+
+    var primeiroAutorDados = primeiroLivroDados.autor().get(0);
+
+    Livro livro = new Livro(primeiroLivroDados, primeiroAutorDados);
+
+    if (livroRepositorio.existsByTitulo(livro.getTitulo())) {
+        System.out.println("Livro já existe no sistema!");
+        return;
+    }
+
+    var opcionalAutor = autorRepositorio.findByNome(primeiroAutorDados.nome());
+    Autor autorEntity = opcionalAutor.orElseGet(() -> new Autor(primeiroAutorDados));
+
+    autorEntity.addLivro(livro);
+
+    try {
+        autorRepositorio.save(autorEntity);
+        System.out.println("Livro e autor salvos no sistema!");
+    } catch (DataIntegrityViolationException e) {
+        System.out.println("Erro ao salvar (provável conflito de integridade): " + e.getMessage());
+    }
+
+    System.out.println(livro);
+}
 
     public void listarLivrosRegistrados(){
         List<Livro> livros;
@@ -108,7 +125,7 @@ public class Principal {
     }
     public void listarAutoresRegistrados(){
         List<Autor> autores;
-        autores = autorRepositorio.findAll();
+        autores = autorRepositorio.findAllComLivros();
         autores.forEach(System.out::println);
     }
     public void listarAutoresVivosNoAno() {
@@ -122,7 +139,7 @@ public class Principal {
             return;
         }
 
-        List<Autor> todos = autorRepositorio.findAll();
+        List<Autor> todos = autorRepositorio.findAllComLivros();
         List<Autor> vivos = new ArrayList<>();
 
         for (Autor a : todos) {
