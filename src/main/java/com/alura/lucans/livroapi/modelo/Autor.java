@@ -2,6 +2,9 @@ package com.alura.lucans.livroapi.modelo;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "autores")
 public class Autor {
@@ -12,6 +15,8 @@ public class Autor {
     private String nome;
     private String dataNascimento;
     private String dataMorte;
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Livro> livros = new ArrayList<>();
 
     public Autor() {
     }
@@ -20,6 +25,22 @@ public class Autor {
         this.nome = dadosAutor.nome();
         this.dataNascimento = dadosAutor.dataNascimento();
         this.dataMorte = dadosAutor.dataMorte();
+    }
+    public void addLivro(Livro livro) {
+        livros.add(livro);
+        livro.setAutor(this);
+    }
+    public void removeLivro(Livro livro) {
+        livros.remove(livro);
+        livro.setAutor(null);
+    }
+
+    public List<Livro> getLivros() {
+        return livros;
+    }
+
+    public void setLivros(List<Livro> livros) {
+        this.livros = livros;
     }
 
     public Long getId() {

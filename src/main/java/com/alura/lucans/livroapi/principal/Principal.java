@@ -61,10 +61,10 @@ public class Principal {
                     listarAutoresRegistrados();
                     break;
                 case 4:
-                    System.out.println("b");
+                    listarAutoresVivosNoAno();
                     break;
                 case 5:
-                    System.out.println("c");
+                    listarLivrosPorIdioma();
                     break;
                 default:
                     System.out.println("Opção Inválida!");
@@ -110,6 +110,82 @@ public class Principal {
         List<Autor> autores;
         autores = autorRepositorio.findAll();
         autores.forEach(System.out::println);
+    }
+    public void listarAutoresVivosNoAno() {
+        System.out.print("Digite o ano (ex: 1900): ");
+        String entrada = leitor.nextLine().trim();
+        int ano;
+        try {
+            ano = Integer.parseInt(entrada);
+        } catch (NumberFormatException ex) {
+            System.out.println("Ano inválido.");
+            return;
+        }
+
+        List<Autor> todos = autorRepositorio.findAll();
+        List<Autor> vivos = new ArrayList<>();
+
+        for (Autor a : todos) {
+            Integer nascimento = parseAno(a.getDataNascimento());
+            Integer morte = parseAno(a.getDataMorte());
+
+            if (nascimento == null) continue;
+
+            boolean nasceuAntesOuNoAno = nascimento <= ano;
+            boolean morreuAntesDoAno = (morte != null && morte < ano);
+
+            if (nasceuAntesOuNoAno && !morreuAntesDoAno) {
+                vivos.add(a);
+            }
+        }
+
+        if (vivos.isEmpty()) {
+            System.out.println("Nenhum autor encontrado vivo no ano " + ano);
+        } else {
+            vivos.forEach(System.out::println);
+        }
+    }
+
+    private Integer parseAno(String data) {
+        if (data == null || data.isBlank()) return null;
+        String digits = data.trim();
+        if (digits.length() >= 4) {
+            try {
+                return Integer.parseInt(digits.substring(0,4));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        try {
+            return Integer.parseInt(digits);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+    public void listarLivrosPorIdioma() {
+        System.out.print("""
+                Insira o idioma para realizar a busca:
+                
+                es - espanhol
+                en - inglês
+                fr - francês
+                pt - português
+                """);
+        System.out.print("\n" + "Escolha:");
+        String idioma = leitor.nextLine().trim();
+
+        if (idioma.isEmpty()) {
+            System.out.println("Idioma inválido.");
+            return;
+        }
+
+        List<Livro> livros = livroRepositorio.findByIdioma(idioma);
+
+        if (livros.isEmpty()) {
+            System.out.println("Nenhum livro encontrado no idioma " + idioma);
+        } else {
+            livros.forEach(System.out::println);
+        }
     }
 
 }

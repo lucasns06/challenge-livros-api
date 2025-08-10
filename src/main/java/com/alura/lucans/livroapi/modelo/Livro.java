@@ -2,19 +2,25 @@ package com.alura.lucans.livroapi.modelo;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 @Entity
-@Table(name="series")
+@Table(name="livros")
 public class Livro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(unique = true)
     private String titulo;
-    private String autor;
-    private List<String> idiomas;
+    private String autorLivro;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "livro_idiomas", joinColumns = @JoinColumn(name = "livro_id"))
+    @Column(name = "idioma")
+    private List<String> idiomas = new ArrayList<>();
     private Integer downloads;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "autor_id")
+    private Autor autor;
     public Livro() {
     }
 
@@ -22,7 +28,7 @@ public class Livro {
         this.titulo = dadosLivro.titulo();
         this.downloads = dadosLivro.downloads();
         this.idiomas = dadosLivro.idiomas();
-        this.autor = dadosAutor.nome();
+        this.autorLivro = dadosAutor.nome();
     }
 
     public Long getId() {
@@ -33,6 +39,14 @@ public class Livro {
         this.id = id;
     }
 
+    public Autor getAutor() {
+        return autor;
+    }
+
+    public void setAutor(Autor autor) {
+        this.autor = autor;
+    }
+
     public String getTitulo() {
         return titulo;
     }
@@ -41,12 +55,12 @@ public class Livro {
         this.titulo = titulo;
     }
 
-    public String getAutor() {
-        return autor;
+    public String getAutorLivro() {
+        return autorLivro;
     }
 
-    public void setAutor(String autor) {
-        this.autor = autor;
+    public void setAutorLivro(String autorLivro) {
+        this.autorLivro = autorLivro;
     }
 
     public List<String> getIdiomas() {
@@ -71,7 +85,7 @@ public class Livro {
                 "\n" +
                 "========Livro========" +"\n" +
                 "Titulo: " + titulo + "\n" +
-                "Autor: " + autor + "\n" +
+                "Autor: " + autorLivro + "\n" +
                 "Número de downloads: " + downloads + "\n" +
                 "idiomas: " + String.join(", ", idiomas) + "\n" +
                 "========Livro========"
