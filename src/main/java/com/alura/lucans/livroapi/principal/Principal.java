@@ -1,6 +1,7 @@
 package com.alura.lucans.livroapi.principal;
-
-import com.alura.lucans.livroapi.modelo.DadosLivro;
+import com.alura.lucans.livroapi.modelo.DadosAutor;
+import com.alura.lucans.livroapi.modelo.Livro;
+import com.alura.lucans.livroapi.modelo.ResultadoApi;
 import com.alura.lucans.livroapi.service.ConsumoApi;
 import com.alura.lucans.livroapi.service.ConverteDados;
 
@@ -24,6 +25,11 @@ public class Principal {
                 0 - sair
                 """);
         System.out.print("Resposta: ");
+        if (!leitor.hasNextInt()) {
+            System.out.println("Entrada inválida! Digite um número.");
+            leitor.nextLine();
+            return;
+        }
         int resposta = leitor.nextInt();
         leitor.nextLine();
         switch (resposta){
@@ -54,8 +60,25 @@ public class Principal {
         System.out.print("Digite o titulo do livro: ");
         var titulo = leitor.nextLine();
 
-        var json = consumoApi.obterDados(ENDERECO + "books?search=" + titulo.replace(" ", "%20"));
-        DadosLivro dados = conversor.obterDados(json, DadosLivro.class);
-        System.out.println(dados);
+        var json = consumoApi.obterDados(ENDERECO + "books/?search=" + titulo.replace(" ", "+"));
+
+        ResultadoApi resposta = conversor.obterDados(json, ResultadoApi.class);
+
+        resposta.resposta().stream()
+                .limit(1)
+                .map(d -> new Livro(d, d.autor().get(0)))
+                .forEach(System.out::println);
     }
+//    public void buscarPorLivroTituloT(){
+//        System.out.println("pesquisando dom casmurro: ");
+//
+//        var json = consumoApi.obterDados(ENDERECO + "books/?search=dom+casmurro");
+//
+//        ResultadoApi resposta = conversor.obterDados(json, ResultadoApi.class);
+////        System.out.println(resposta);
+//        resposta.resposta().stream()
+//                .map(d -> new Livro(d, d.autor().get(0)))
+//                .forEach(System.out::println);
+//
+//    }
 }
